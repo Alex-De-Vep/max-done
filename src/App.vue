@@ -1,10 +1,9 @@
 <template>
-  <router-view/>
+  <router-view />
   <section>
     <div class="header">
       <div class="new-task">
         <div class="new-task__field">
-          <label class="new-task__label" for="newTaskTitle"></label>
           <input
             v-model="newTask.title"
             @keydown.enter="addNewTask"
@@ -13,12 +12,13 @@
             id="newTaskTitle"
             type="text"
             placeholder="Название задачи"
+            required
           />
         </div>
         <div class="new-task__field">
-          <label class="new-task__label" for="newTaskDescription"></label>
           <input
             v-model="newTask.description"
+            @keydown.enter="addNewTask"
             class="new-task__input new-task__input_size_small"
             name="newTaskDescription"
             id="newTaskDescription"
@@ -28,12 +28,7 @@
         </div>
       </div>
       <div class="header__button">
-        <button
-          @click="addNewTask"
-          type="button"
-        >
-          Добавить
-        </button>
+        <button @click="addNewTask" type="button">Добавить</button>
       </div>
     </div>
   </section>
@@ -42,12 +37,14 @@
       <div
         v-for="task in tasks"
         :key="task.title"
-        @click="editTask = task"
+        @click="editTask = viewEmptyLine(task)"
         :class="{ active: editTask === task }"
         class="task"
       >
         <p class="task__title">{{ task.title }}</p>
-        <p class="task__description">{{ task.description }}</p>
+        <p v-snip="1" class="task__description" v-if="!task.isDescriptionEmpty">
+          {{ task.description }}
+        </p>
         <div>
           <button type="button" @click.stop="handleDelete(task)">
             Удалить
@@ -60,7 +57,7 @@
         <div>
           <button @click="editTask = null">Закрыть</button>
           <button
-            @click="
+            @click.stop="
               handleDelete(editTask);
               editTask = null;
             "
@@ -68,7 +65,17 @@
             Удалить
           </button>
         </div>
-        <p class="task__title">{{ editTask.title }}</p>
+        <div class="task-editor__input-wrapper">
+          <input v-model="editTask.title" class="task-editor__input" />
+        </div>
+        <div class="task-editor__textarea-wrapper">
+          <textarea
+            v-on:focus="removeDefaultText(editTask)"
+            placeholder="Добавить описание"
+            v-model="editTask.description"
+            class="task-editor__textarea"
+          />
+        </div>
       </div>
     </template>
   </section>
@@ -83,19 +90,24 @@ export default {
       newTask: {
         title: "",
         description: "",
+        isDescriptionEmpty: false,
       },
       tasks: [
         {
           title: "new Title 1",
           description: "new description",
+          isDescriptionEmpty: false,
         },
         {
           title: "new Title 2",
-          description: "new description",
+          description: "",
+          isDescriptionEmpty: true,
         },
         {
           title: "new Title 3",
-          description: "new description",
+          description:
+            "Есть много вариантов Lorem Ipsum, но большинство из них имеет не всегда приемлемые модификации, например, юмористические вставки или слова, которые даже отдалённо не напоминают латынь. Если вам нужен Lorem Ipsum для серьёзного проекта, вы наверняка не хотите какой-нибудь шутки, скрытой в середине абзаца. Также все другие известные генераторы Lorem Ipsum используют один и тот же текст, который они просто",
+          isDescriptionEmpty: false,
         },
       ],
       editTask: null,
@@ -106,8 +118,16 @@ export default {
     addNewTask() {
       const newTask = {
         title: this.newTask.title,
-        description: this.newTask.description,
+        isDescriptionEmpty: this.newTask.description === "",
+        description:
+          this.newTask.description === ""
+            ? (this.newTask.description = "")
+            : this.newTask.description,
       };
+
+      if (this.newTask.title === "") {
+        return;
+      }
 
       this.tasks.push(newTask);
       this.newTask.title = "";
@@ -115,6 +135,26 @@ export default {
     },
     handleDelete(taskToRemove) {
       this.tasks = this.tasks.filter((task) => task !== taskToRemove);
+    },
+    viewEmptyLine(task) {
+      if (task.description === "") {
+        task.isDescriptionEmpty = false;
+        task.description = "Добавить описание";
+      }
+
+      if (task && task.isDescriptionEmpty === true) {
+        task.isDescriptionEmpty = false;
+      }
+
+      return task;
+    },
+    removeDefaultText(task) {
+      if (task.description === "Добавить описание") {
+        task.description = "";
+        task.isDescriptionEmpty = false;
+      }
+
+      return task;
     },
   },
 };
@@ -136,7 +176,9 @@ p {
   margin: 0;
 }
 
-body {
+body,
+input,
+textarea {
   font-family: var(--font-stack);
 }
 
@@ -162,9 +204,6 @@ body {
 }
 
 .container {
-  display: grid;
-  grid-gap: 10px;
-
   width: 100%;
 }
 
@@ -192,6 +231,7 @@ body {
 }
 
 .task {
+  margin-bottom: 20px;
   padding: 20px;
 
   border: 4px solid #e3e4e4;
@@ -215,8 +255,13 @@ body {
   font-size: 16px;
 }
 
+.task__description.hidden {
+  display: none;
+}
+
 .task-editor {
   width: 600px;
+  height: 460px;
 
   margin-left: 20px;
   padding: 10px;
@@ -225,4 +270,44 @@ body {
 
   border-radius: 10px;
 }
+
+.task-editor__input {
+  width: 100%;
+  max-width: 420px;
+
+  font-weight: 500;
+  font-size: 16px;
+
+  padding: 10px;
+
+  background-color: #f3f4f6;
+
+  border: 0;
+  border-radius: 10px;
+
+  outline: 0;
+}
+
+.task-editor__textarea {
+  width: 100%;
+  max-width: 420px;
+  height: 180px;
+
+  padding: 10px;
+
+  background-color: #f3f4f6;
+
+  border: 0;
+  border-radius: 10px;
+
+  outline: 0;
+
+  resize: none;
+}
+
+.task-editor__input,
+.task-editor__textarea-wrapper {
+  margin-top: 20px;
+}
+
 </style>
