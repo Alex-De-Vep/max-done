@@ -1,5 +1,5 @@
 <template>
-  <form id="form-login" @submit.prevent="loginUser" class="form">
+  <form id="form-login" class="form">
     <div class="form__field">
       <label for="login" class="form__label">Email Address</label>
       <input
@@ -20,20 +20,24 @@
     </div>
     <div class="form__check-wrapper">
       <div class="form__check">
-        <input v-model="loginData.check" type="checkbox"/>
+        <input v-model="loginData.check" type="checkbox" />
         <p class="form__check-text">Remember me</p>
       </div>
       <a class="form__link" href="">Forgot password?</a>
     </div>
     <div class="form__button">
-      <Button text="Login"/>
-      <Button text="Create account" transparent="true"/>
+      <Button
+        @:click="consoleLogin()"
+        @:keydown.enter="consoleLogin()"
+        text="Login"
+      />
+      <Button text="Create account" transparent="true" />
     </div>
   </form>
 </template>
 
 <script>
-import Button from "../../components/Button";
+import Button from "../button/Button";
 
 export default {
   name: "FormLogin",
@@ -48,10 +52,8 @@ export default {
     };
   },
   methods: {
-    loginUser() {
-      console.log(this.loginData);
-      const form = document.querySelector("#form-login");
-      form.reset();
+    consoleLogin() {
+      alert(this.loginData.login);
     },
   },
 };

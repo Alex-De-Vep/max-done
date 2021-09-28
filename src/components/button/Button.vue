@@ -2,7 +2,7 @@
   <button
     type="submit"
     class="button"
-    v-bind:class="{ button_transparent: transparent }"
+    :class="{ button_transparent: transparent }"
   >
     {{ text }}
   </button>
